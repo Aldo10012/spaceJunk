@@ -14,6 +14,7 @@ class GameScene: SKScene {
     var screenHeight: CGFloat = 0
     var screenWidth: CGFloat = 0
     
+    var playerNode = SKNode()
     let thrusterFlame = SKEmitterNode(fileNamed: "thrusterFlame.sks")!
 
     
@@ -24,6 +25,7 @@ class GameScene: SKScene {
     override func didMove(to view: SKView) {
         screenHeight = size.height
         screenWidth = size.width
+        playerNode = childNode(withName: "player")!
         
         let spawnDebris = SKAction.run { self.spawnDebris() }
         
@@ -45,9 +47,6 @@ class GameScene: SKScene {
     
     /// Called when user touches screen
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        
-        let playerNode = childNode(withName: "player")!
-        
         for touch in touches{
             let touchLocation = touch.location(in: self)
             
@@ -71,6 +70,18 @@ class GameScene: SKScene {
         }
                 
         
+    }
+    /// Called when user drags finger on screen
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        let playerNode = childNode(withName: "player")!
+        
+        for touch in touches{
+            let touchLocation = touch.location(in: self)
+            
+            let mvoePlayer = SKAction.moveTo(x: touchLocation.x, duration: 0.25)
+            playerNode.run(mvoePlayer)
+            thrusterFlame.run(mvoePlayer)
+        }
     }
     
     
@@ -197,4 +208,22 @@ class GameScene: SKScene {
     
 }
 
+/// This creates the CatagoryBitMask
+/// its like an identifier for each object type
+/// if two objects have a 1 on the save column, they can colide
+/// 0001 and 0010 can't collide
+/// 0001 and 0011 can collide
+struct PhysicsCatagory {
+    static let None:    UInt32 = 0       // 0000000 0
+    static let Ship:    UInt32 = 0b1     // 0000001 1
+    static let Debris:  UInt32 = 0b10    // 0000010 2
+    static let Edge:    UInt32 = 0b100   // 0000100 4
+}
 
+/// This creates the ContactBitMask, allowing objects to make contaqct with other objects depending on their PhysicdCatagory bit mask
+struct PhysicsContact {
+    static let None:    UInt32 = 0       // 0000000 0   Doesn't make contact with anything
+    static let Ship:    UInt32 = 0b10    // 0000010 2   Ship can collide with debris
+    static let Debris:  UInt32 = 0b11    // 0000011 3   Debris can collide with ship and other debris
+    static let Edge:    UInt32 = 0b10    // 0000010 2   Edge can collide with debris
+}
