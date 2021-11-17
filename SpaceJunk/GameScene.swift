@@ -26,6 +26,11 @@ class GameScene: SKScene {
         screenHeight = size.height
         screenWidth = size.width
         playerNode = childNode(withName: "player")!
+        playerNode.physicsBody?.categoryBitMask = PhysicsCatagory.Ship
+        playerNode.physicsBody?.collisionBitMask = PhysicsCatagory.Debris
+        playerNode.physicsBody?.contactTestBitMask = PhysicsCatagory.Debris
+        
+        physicsWorld.contactDelegate = self
         
         let spawnDebris = SKAction.run { self.spawnDebris() }
         
@@ -42,7 +47,7 @@ class GameScene: SKScene {
     
     /// Called before each frame is rendered (60x per second )
     override func update(_ currentTime: TimeInterval) {
-        checkIfPlayerHasCollidedWithAstroid()
+//        checkIfPlayerHasCollidedWithAstroid()
     }
     
     /// Called when user touches screen
@@ -68,9 +73,9 @@ class GameScene: SKScene {
                 thrusterFlame.run(.move(by: vector, duration: duration))
             }
         }
-                
-        
     }
+    
+    
     /// Called when user drags finger on screen
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         let playerNode = childNode(withName: "player")!
@@ -85,11 +90,6 @@ class GameScene: SKScene {
     }
     
     
-    override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
-        
-    }
-    
-    
     // MARK: Helpers
     func getRandomeSprite() -> String {
         return [
@@ -101,8 +101,6 @@ class GameScene: SKScene {
         ].randomElement() as! String
     }
     
-    
-    
     func getRandomeXPoint() -> CGFloat{
         return CGFloat.random(in: 0...screenWidth)
     }
@@ -111,72 +109,88 @@ class GameScene: SKScene {
         return CGPoint(x: getRandomeXPoint(), y: screenHeight)
     }
     
-    func backToTop() -> SKAction {
-        return SKAction.move(to: self.setToTopWithRandomeXPoint(), duration: 0)
-    }
+//    func backToTop() -> SKAction {
+//        return SKAction.move(to: self.setToTopWithRandomeXPoint(), duration: 0)
+//    }
     
-    func debrisFallingAndSpinning(duration: TimeInterval) -> SKAction {
-        let vector = CGVector(dx: 0, dy: -(screenHeight+50))
-        let debrisFalling = SKAction.move(by: vector, duration: duration)
-        let rotationAction = SKAction.rotate(byAngle: .pi * 2, duration: duration)
-        
-        let debrisFallingAndSpinning = SKAction.group([
-            debrisFalling,
-            rotationAction
-        ])
-        
-        return debrisFallingAndSpinning
-    }
-    
-    func movePlayerOnTouch() {
-         // TODO: move layer left or right depending on where u touch
-    }
+//    func debrisFallingAndSpinning(duration: TimeInterval) -> SKAction {
+//        let vector = CGVector(dx: 0, dy: -(screenHeight+50))
+//        let debrisFalling = SKAction.move(by: vector, duration: duration)
+//        let rotationAction = SKAction.rotate(byAngle: .pi * 2, duration: duration)
+//
+//        let debrisFallingAndSpinning = SKAction.group([
+//            debrisFalling,
+//            rotationAction
+//        ])
+//
+//        return debrisFallingAndSpinning
+//    }
     
     // MARK: Swapn debris
     func spawnDebris() {
         // Create the debris
         let debris = SKSpriteNode(imageNamed: self.getRandomeSprite())
         debris.name = "debris"
+        
+        // ADDING PHYSICS TO DEBRIS
+        
+        let debrisRadius = max(debris.size.width/2, debris.size.height/2)
+        debris.physicsBody = SKPhysicsBody(circleOfRadius: debrisRadius)
+        
+        debris.physicsBody?.categoryBitMask = PhysicsCatagory.Debris
+        debris.physicsBody?.collisionBitMask = PhysicsCatagory.Ship | PhysicsCatagory.Debris
+        debris.physicsBody?.contactTestBitMask = PhysicsCatagory.Ship
 
         // positino them at top
         debris.position = self.setToTopWithRandomeXPoint()
-
+        
         // add debris to acreen
         self.addChild(debris)
         
+        // physics falling
+        debris.physicsBody?.affectedByGravity = false
+        let dy = (CGFloat.random(in: 100..<150) * -1)
+        debris.physicsBody?.applyImpulse(CGVector(dx: 0, dy: dy))
+        
+        // physics spinning
+        debris.physicsBody?.applyAngularImpulse(0.03)
+        
+       
+        // TODO: Destroy debris when off screen
+        
 
         // add action to move down add spin
-        let debrisFallingAndSpinning = self.debrisFallingAndSpinning(duration: .random(in: 2...5))
-        
-        let destroy = SKAction.removeFromParent()
-        
-        debris.run(
-            .repeatForever(
-                .sequence([debrisFallingAndSpinning, destroy])
-            )
-        )
+//        let debrisFallingAndSpinning = self.debrisFallingAndSpinning(duration: .random(in: 2...5))
+//
+//        let destroy = SKAction.removeFromParent()
+//
+//        debris.run(
+//            .repeatForever(
+//                .sequence([debrisFallingAndSpinning, destroy])
+//            )
+//        )
     }
     
     // MARK: Collision
-    func checkIfPlayerHasCollidedWithAstroid() {
-        // TODO: check if player has touched astroid. If so, destroy debris. (present Game Over scene)
-        
-        enumerateChildNodes(withName: "debris") { debrisNode, _ in
-            let debrisFrame = debrisNode.frame
-            
-            let playerNode = self.childNode(withName: "player")!
-            let playerFrame = playerNode.frame
-            
-            let doesDebrisIntersectWithPlayer = debrisFrame.intersects(playerFrame)
-            
-            if doesDebrisIntersectWithPlayer {
-                debrisNode.removeFromParent()
-                self.run(self.playExplosionSound())
-                self.presentGameOverScene()
-            }
-        }
-        
-    }
+//    func checkIfPlayerHasCollidedWithAstroid() {
+//        // TODO: check if player has touched astroid. If so, destroy debris. (present Game Over scene)
+//
+//        enumerateChildNodes(withName: "debris") { debrisNode, _ in
+//            let debrisFrame = debrisNode.frame
+//
+//            let playerNode = self.childNode(withName: "player")!
+//            let playerFrame = playerNode.frame
+//
+//            let doesDebrisIntersectWithPlayer = debrisFrame.intersects(playerFrame)
+//
+//            if doesDebrisIntersectWithPlayer {
+//                debrisNode.removeFromParent()
+//                self.run(self.playExplosionSound())
+//                self.presentGameOverScene()
+//            }
+//        }
+//
+//    }
     
     // MARK: Game Over
     func presentGameOverScene() {
@@ -204,10 +218,28 @@ class GameScene: SKScene {
         thrusterFlame.position = playerPosition!
         addChild(thrusterFlame)
     }
-    
-    
 }
 
+// MARK: PhysicsContactDelegate
+extension GameScene: SKPhysicsContactDelegate {
+    /// getss called when 2 physics bodies start touching
+    func didBegin(_ contact: SKPhysicsContact) {
+        print("begin making contact")
+        self.run(.group([
+            self.playExplosionSound(),
+            SKAction.run(presentGameOverScene)
+        ]))
+    }
+    
+    /// getss called when 2 physics bodies end touching
+    func didEnd(_ contact: SKPhysicsContact) {
+        return
+    }
+}
+
+
+
+// MARK: Physics Model
 /// This creates the CatagoryBitMask
 /// its like an identifier for each object type
 /// if two objects have a 1 on the save column, they can colide
