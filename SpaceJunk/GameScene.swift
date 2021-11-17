@@ -45,36 +45,6 @@ class GameScene: SKScene {
         
     }
     
-    /// Called before each frame is rendered (60x per second )
-    override func update(_ currentTime: TimeInterval) {
-//        checkIfPlayerHasCollidedWithAstroid()
-    }
-    
-    /// Called when user touches screen
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for touch in touches{
-            let touchLocation = touch.location(in: self)
-            
-            if touchLocation.x < (playerNode.position.x) {
-                // Left side of the screen
-                
-                let vector: CGVector = CGVector(dx: -50, dy: 0)
-                let duration: TimeInterval = 0.5
-                
-                playerNode.run(.move(by: vector, duration: duration))
-                thrusterFlame.run(.move(by: vector, duration: duration))
-            } else {
-                // Right side of the screen
-                
-                let vector: CGVector = CGVector(dx: 50, dy: 0)
-                let duration: TimeInterval = 0.5
-                
-                playerNode.run(.move(by: vector, duration: duration))
-                thrusterFlame.run(.move(by: vector, duration: duration))
-            }
-        }
-    }
-    
     
     /// Called when user drags finger on screen
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -109,22 +79,6 @@ class GameScene: SKScene {
         return CGPoint(x: getRandomeXPoint(), y: screenHeight)
     }
     
-//    func backToTop() -> SKAction {
-//        return SKAction.move(to: self.setToTopWithRandomeXPoint(), duration: 0)
-//    }
-    
-//    func debrisFallingAndSpinning(duration: TimeInterval) -> SKAction {
-//        let vector = CGVector(dx: 0, dy: -(screenHeight+50))
-//        let debrisFalling = SKAction.move(by: vector, duration: duration)
-//        let rotationAction = SKAction.rotate(byAngle: .pi * 2, duration: duration)
-//
-//        let debrisFallingAndSpinning = SKAction.group([
-//            debrisFalling,
-//            rotationAction
-//        ])
-//
-//        return debrisFallingAndSpinning
-//    }
     
     // MARK: Swapn debris
     func spawnDebris() {
@@ -158,39 +112,8 @@ class GameScene: SKScene {
        
         // TODO: Destroy debris when off screen
         
-
-        // add action to move down add spin
-//        let debrisFallingAndSpinning = self.debrisFallingAndSpinning(duration: .random(in: 2...5))
-//
-//        let destroy = SKAction.removeFromParent()
-//
-//        debris.run(
-//            .repeatForever(
-//                .sequence([debrisFallingAndSpinning, destroy])
-//            )
-//        )
     }
     
-    // MARK: Collision
-//    func checkIfPlayerHasCollidedWithAstroid() {
-//        // TODO: check if player has touched astroid. If so, destroy debris. (present Game Over scene)
-//
-//        enumerateChildNodes(withName: "debris") { debrisNode, _ in
-//            let debrisFrame = debrisNode.frame
-//
-//            let playerNode = self.childNode(withName: "player")!
-//            let playerFrame = playerNode.frame
-//
-//            let doesDebrisIntersectWithPlayer = debrisFrame.intersects(playerFrame)
-//
-//            if doesDebrisIntersectWithPlayer {
-//                debrisNode.removeFromParent()
-//                self.run(self.playExplosionSound())
-//                self.presentGameOverScene()
-//            }
-//        }
-//
-//    }
     
     // MARK: Game Over
     func presentGameOverScene() {
