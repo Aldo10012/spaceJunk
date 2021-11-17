@@ -93,7 +93,7 @@ class GameScene: SKScene {
         
         debris.physicsBody?.categoryBitMask = PhysicsCatagory.Debris
         debris.physicsBody?.collisionBitMask = PhysicsCatagory.Ship | PhysicsCatagory.Debris
-        debris.physicsBody?.contactTestBitMask = PhysicsCatagory.Ship
+        debris.physicsBody?.contactTestBitMask = PhysicsCatagory.Ship | PhysicsCatagory.Debris
 
         // positino them at top
         debris.position = self.setToTopWithRandomeXPoint()
@@ -147,11 +147,38 @@ class GameScene: SKScene {
 extension GameScene: SKPhysicsContactDelegate {
     /// getss called when 2 physics bodies start touching
     func didBegin(_ contact: SKPhysicsContact) {
-        print("begin making contact")
-        self.run(.group([
-            self.playExplosionSound(),
-            SKAction.run(presentGameOverScene)
-        ]))
+        
+        let shipMask = PhysicsCatagory.Ship
+        let debrisMask = PhysicsCatagory.Debris
+        
+        let nodeA = contact.bodyA.node!
+        let nodeB = contact.bodyB.node!
+        
+        let contactAMAsk = contact.bodyA.categoryBitMask
+        let contactBMAsk = contact.bodyB.categoryBitMask
+        
+        let collision = contactAMAsk | contactBMAsk
+        
+        switch collision {
+            
+        /// if collision was between ship and debris
+        case shipMask | debrisMask:
+            print("ship collided with debris")
+            
+            // remove debris from parent
+            if nodeA.name == "debris"{ nodeA.removeFromParent() }
+            else { nodeB.removeFromParent() }
+            
+            // game over
+            self.run(.group([ playExplosionSound(), SKAction.run(presentGameOverScene) ]))
+            
+        /// if collision was between debris and debris
+        case debrisMask:
+            print("Two debris's collided")
+            
+        default:
+            break
+        }
     }
     
     /// getss called when 2 physics bodies end touching
